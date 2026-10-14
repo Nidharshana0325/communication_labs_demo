@@ -1,9 +1,11 @@
 # Communication Lab - Experiment 1: Meet and Greet
 
+## Deployed demo - https://communicationlabsdemo.vercel.app/
+
 A small web lesson that teaches Indian school students (about Class 6 to 8) to **introduce themselves in English**.
 The student listens, repeats, answers questions, and speaks aloud. The page gives simple feedback.
 
-This is **one experiment** of a bigger set (15 planned). It is shared here so that others can help improve it.
+This is **one experiment** of a bigger set . It is shared here so that others can help improve it.
 
 - **One file:** the whole lesson is `index.html`.
 - **No build step, no install, no API keys, no database.**
@@ -31,7 +33,7 @@ Open http://localhost:3000
 |---|---|
 | `index.html` | The whole experiment: text, pictures, activities, style and code |
 | `local-server.js` | A tiny local server so the microphone works on your computer |
-| `vercel.json` | Tells Vercel to serve this as a plain website (needed for the free live link) |
+| `vercel.json` | Tells Vercel to serve this as a plain website |
 | `.gitignore` | Files Git should ignore |
 | `README.md` | This guide |
 
@@ -58,7 +60,7 @@ The student can pick **basic** or **intermediate** level. Progress is saved in t
 
 Open `index.html` and use **Ctrl+F** to jump to these markers.
 
-| Search for | What is there | Touch it if you want to... |
+| Search for | What is there | What you can improve |
 |---|---|---|
 | `COMMON BLOCK START` | The shared engine: page layout, **CSS look**, voice, microphone, saving, step runner | change colours, fonts, buttons, spacing |
 | `EXPERIMENT 1: DATA` | All the lesson text: towns, hobbies, questions, quiz items, tips | change or add sentences and questions |
@@ -164,14 +166,6 @@ Not sure where to start? Open an **Issue** and ask.
 
 ---
 
-## 11. Deploy your own copy (free)
-
-Vercel: push to GitHub, **Add New, Project**, import the repo, preset **Other**, no environment variables, **Deploy**.
-
-Do not add a `server.js` or `package.json` file. Vercel would try to run it as a server and the site would show "Not found".
-
----
-
-## 12. Status
+## 11. Status
 
 Working prototype. Tested on desktop Chrome and Edge. More phone and browser testing is needed.
