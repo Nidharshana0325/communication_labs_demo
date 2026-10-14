@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meet and Greet - Communication Lab</title>
+<script>
+/* COMMON BLOCK START (copy unchanged into every experiment; set the id in CLab.run) */
+var CLab=(function(){
+var C={},SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+C.esc=esc;
+C.css=[
+'.cl-root{--ink:#0F2A43;--ink2:#1B4965;--paper:#FFF8EB;--sand:#F2E6CF;--amber:#F4A100;--teal:#1F9E8F;--coral:#D64933;--sky:#CDE9F6;--muted:#5B6475;font:18px/1.5 Verdana,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper);min-height:100vh}',
+'.cl-root *{box-sizing:border-box}',
+'.cl-wrap{max-width:1100px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:16px}',
+'.cl-L,.cl-R{display:flex;flex-direction:column;gap:16px;min-width:0}.cl-mid{flex:1;display:flex;flex-direction:column;gap:16px}.cl-mid::before,.cl-mid::after{content:"";flex:1 0 0}.cl-pic:empty{display:none}.cl-pic svg{width:100%;height:auto;max-height:46vh}',
+'@media (min-width:760px){.cl-wrap{height:100vh;min-height:0;flex-direction:row;overflow:hidden}.cl-L{flex:0 0 44%;overflow-y:auto}.cl-R{flex:1;overflow-y:auto;padding-right:4px}}',
+'.cl-bar{display:flex;flex-direction:column;gap:8px}.cl-dots{display:flex;gap:4px}',
+'.cl-dot{width:36px;height:36px;flex:none;border-radius:50%;border:2px dashed var(--ink2);display:grid;place-items:center;font-weight:bold;background:#fff}',
+'.cl-dot.ok{border-style:solid;background:var(--sky)}.cl-dot.on{border:4px solid var(--ink);background:var(--amber)}',
+'.cl-title{font-size:28px;line-height:1.25;margin:0}',
+'.cl-instr{display:flex;align-items:center;gap:12px;background:var(--sky);border-radius:12px;padding:12px 16px;font-size:20px;font-weight:bold;margin:0}.cl-instr span{flex:1}',
+'.cl-act{display:flex;flex-direction:column;gap:12px}.cl-act p{margin:0}',
+'.cl-root button{font:inherit;min-width:44px;min-height:44px;padding:8px 16px;border:2px solid var(--ink2);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .2s ease-out}',
+'.cl-root button:hover:not(:disabled){background:var(--sand)}.cl-root button:disabled{opacity:.45;cursor:default}',
+'.cl-root .cl-pri{background:var(--amber);border-color:var(--amber);font-weight:bold}.cl-root .cl-pri:hover:not(:disabled){background:#E19600}',
+'.cl-root .cl-go,.cl-root .cl-back{background:var(--sky);border-color:var(--ink2);font-weight:bold}.cl-root .cl-pri:not(:disabled){animation:cl-pop 2.2s ease-in-out infinite}',
+'@keyframes cl-pop{0%,100%{box-shadow:0 0 0 0 rgba(244,161,0,.5);transform:scale(1)}50%{box-shadow:0 0 0 8px rgba(244,161,0,0);transform:scale(1.03)}}',
+'.cl-root :focus-visible{outline:3px solid var(--ink);outline-offset:2px}',
+'.cl-root input{font:inherit;min-height:44px;padding:8px 12px;border:2px solid var(--ink2);border-radius:12px;width:100%;max-width:360px}',
+'.cl-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.cl-chips{display:flex;flex-wrap:wrap;gap:8px}',
+'.cl-root .cl-chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:bold}',
+'.cl-root .cl-chip[aria-pressed=true]::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}',
+'.cl-card{background:var(--sand);border-radius:20px;padding:16px}.cl-card h3{margin:0 0 8px;font-size:20px}.cl-card p{margin:4px 0}',
+'.cl-audio{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.cl-audio .cl-txt{flex:1 1 220px}',
+'.cl-note{color:var(--muted)}',
+'.cl-fb{display:flex;gap:12px;align-items:flex-start;background:#fff;border:2px solid var(--sand);border-left:10px solid var(--teal);border-radius:12px;padding:12px 16px}.cl-fb.m{border-left-color:var(--amber)}.cl-fb.no{border-left-color:var(--coral)}.cl-fb p{margin:0}.cl-fb svg{flex:none}',
+'.cl-nav{display:flex;align-items:center;gap:12px;padding-top:8px}.cl-hint{flex:1;text-align:center;color:var(--muted)}',
+'.cl-how{display:flex;align-items:center;gap:12px;background:var(--sand);border-radius:12px;padding:8px 16px}.cl-tap{animation:cl-tap 1.7s ease-out 3}',
+'@keyframes cl-tap{0%{transform:translate(40px,20px)}40%{transform:translate(0,0)}55%{transform:translate(0,4px)}100%{transform:translate(40px,20px)}}',
+'@media (prefers-reduced-motion:reduce){.cl-root *{transition:none!important;animation:none!important}}'].join('\n');
+C.get=function(k,d){try{var v=localStorage.getItem('clab.'+C.id+'.'+k);return v===null?d:JSON.parse(v)}catch(e){return d}};
+C.set=function(k,v){try{localStorage.setItem('clab.'+C.id+'.'+k,JSON.stringify(v))}catch(e){}};
+C.$=function(k){return document.getElementById('cl-'+C.id+'-'+k)};
+C.h=function(t,a,kids){var e=document.createElement(t),k;for(k in a||{}){if(k==='class')e.className=a[k];else if(k==='html')e.innerHTML=a[k];else e.setAttribute(k,a[k])}(kids||[]).forEach(function(x){e.appendChild(typeof x==='string'?document.createTextNode(x):x)});return e};
+function ic(p){return'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'}
+C.ico={spk:ic('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a8 8 0 0 1 0 11"/>'),mic:ic('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),ok:ic('<circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.5 3.5L17 9"/>'),again:ic('<circle cx="12" cy="12" r="10"/><path d="M16 12H8m4-4l-4 4 4 4"/>')};
+C.audio=function(t){var a=esc(t);return'<div class="cl-audio"><span class="cl-txt">'+a+'</span><button data-say="'+a+'" aria-label="Play">'+C.ico.spk+'Play</button><button data-say="'+a+'" data-slow="1" aria-label="Play slowly">'+C.ico.spk+'Slow</button></div>'};
+C.note=function(m){var n=C.$('note');if(n)n.textContent=m||''};
+C.url=function(t){return'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&tld=co.in&q='+encodeURIComponent(t)};
+C.chunks=function(t){var out=[],cur='',p=String(t).replace(/\s+/g,' ').match(/[^.!?;:]+[.!?;:]*\s*/g)||[String(t)];p.forEach(function(x){if(cur&&(cur+x).length>180){out.push(cur.trim());cur=''}cur+=x});if(cur.trim())out.push(cur.trim());var r=[];out.forEach(function(x){while(x.length>190){var k=x.lastIndexOf(' ',190);if(k<1)k=190;r.push(x.slice(0,k));x=x.slice(k).trim()}if(x)r.push(x)});return r};
+C.indian=function(){var vs=window.speechSynthesis?speechSynthesis.getVoices():[],m=vs.filter(function(x){var l=x.lang.replace('_','-').toLowerCase();return l==='en-in'||(l.indexOf('en')===0&&/\b(india|neerja|prabhat|heera|ravi|rishi|veena)\b/i.test(x.name))});return m.filter(function(x){return/natural|online/i.test(x.name)})[0]||m[0]||null};
+C.voice=function(){var i=C.indian();if(i)return i;var vs=window.speechSynthesis?speechSynthesis.getVoices():[],g=vs.filter(function(x){return x.lang.replace('_','-').toLowerCase()==='en-gb'}),e=vs.filter(function(x){return x.lang.toLowerCase().indexOf('en')===0});return g[0]||e[0]||null};
+C.synth=function(t,slow){var ss=window.speechSynthesis,d=0;if(!ss){C.note('This browser cannot speak. Please read the text on the screen.');return}function go(){if(d)return;d=1;var v=C.voice();if(!v)C.note('No English voice found on this device. Please read the text on the screen.');ss.cancel();var u=new SpeechSynthesisUtterance(t);if(v)u.voice=v;u.lang=v?v.lang:'en-IN';u.rate=slow?0.6:0.9;ss.speak(u)}if(ss.getVoices().length)go();else{ss.onvoiceschanged=go;setTimeout(go,800)}};
+C.say=function(t,slow){var ss=window.speechSynthesis,q=C.chunks(t),i=0,bad=0,d=0,tok={};C.note('');if(C.au)C.au.pause();if(ss)ss.cancel();C.tok=tok;function fail(){if(!bad&&C.tok===tok){bad=1;C.synth(t,slow)}}function next(){if(C.tok!==tok||i>=q.length)return;var a=new Audio(C.url(q[i++])),pr;a.defaultPlaybackRate=a.playbackRate=slow?0.75:1;a.onerror=fail;a.onended=next;C.au=a;pr=a.play();if(pr&&pr.catch)pr.catch(fail)}function go(){if(d||C.tok!==tok)return;d=1;if(C.indian())C.synth(t,slow);else next()}if(ss&&!ss.getVoices().length){ss.onvoiceschanged=go;setTimeout(go,500)}else go()};
+C.canListen=!!SR;
+C.listenWeb=function(cb){var r,fin=false;function end(a,e){if(!fin){fin=true;cb(a,e)}}try{r=new SR();r.lang='en-IN';r.maxAlternatives=3;r.onresult=function(v){var a=[],i;for(i=0;i<v.results[0].length;i++)a.push(v.results[0][i].transcript);end(a)};r.onerror=function(v){end(null,v.error)};r.onend=function(){end(null,'none')};r.start()}catch(e){end(null,'start')}};
+function wav(ch,sr){var L=0,i,j,k=0,f,r=sr/16000,n,b,v;ch.forEach(function(c){L+=c.length});f=new Float32Array(L);ch.forEach(function(c){f.set(c,k);k+=c.length});n=Math.floor(L/r);b=new ArrayBuffer(44+n*2);v=new DataView(b);
+function w(p,s){for(var q=0;q<s.length;q++)v.setUint8(p+q,s.charCodeAt(q))}
+w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+for(i=0;i<n;i++){var a=Math.floor(i*r),e=Math.max(a+1,Math.floor((i+1)*r)),s=0;for(j=a;j<e&&j<L;j++)s+=f[j];s/=(e-a);v.setInt16(44+i*2,Math.max(-1,Math.min(1,s))*32767,true)}return b}
+C.listen=function(cb){C.listenWeb(cb)};
+C.words=function(s){return String(s||'').toLowerCase().replace(/[^a-z0-9' ]/g,' ').split(/\s+/).filter(Boolean)};
+C.lev=function(a,b){var d=[],i,j;for(i=0;i<=a.length;i++)d[i]=[i];for(j=1;j<=b.length;j++)d[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]};
+C.bands=['Clear','Almost clear','Try once more'];
+C.compare=function(target,heard,conf,skip){var best=null;(heard||[]).forEach(function(h){var hw=C.words(h),n=0,pts=0,miss=[],swap=[];C.words(target).forEach(function(t){if(skip&&skip.indexOf(t)>-1)return;n++;if(hw.indexOf(t)>-1)pts++;else if(((conf||{})[t]||[]).some(function(c){if(hw.indexOf(c)>-1){swap.push([t,c]);return true}}))pts+=0.5;else if(t.length>3&&hw.some(function(w){return C.lev(w,t)<=1}))pts++;else miss.push(t)});var sc=n?pts/n:1,r={band:!miss.length&&!swap.length?0:sc>=0.6?1:2,miss:miss,swap:swap,heard:h,sc:sc};if(!best||r.sc>best.sc)best=r});return best||{band:2,miss:[],swap:[],heard:'',sc:0}};
+C.fb=function(box,kind,head,lines){box.innerHTML=head?'<div class="cl-fb'+(kind==1?' m':kind==2?' no':'')+'" role="status">'+(kind?C.ico.again:C.ico.ok)+'<div><strong>'+esc(head)+'</strong>'+lines.map(function(l){return'<p>'+esc(l)+'</p>'}).join('')+'</div></div>':''};
+C.stages=['Introduction','Learn','Sound Lab','Practice','Kind Words','Real-Life Situations','Skill Check','Summary'];
+C.parts=['Introduction','Learn and Practise','Summary'];
+C.run=function(cfg){
+C.id=cfg.id;var P='cl-'+cfg.id+'-',root=document.getElementById(P+'root'),st=cfg.steps,n=0,ok=false,tm,dn=C.get('done',{});
+var sty=document.createElement('style');sty.textContent=C.css;document.head.insertBefore(sty,document.head.firstChild);root.className='cl-root';
+root.innerHTML='<div class="cl-wrap"><div class="cl-L"><div class="cl-bar" id="'+P+'bar"></div><div class="cl-mid"><h1 class="cl-title" id="'+P+'title"></h1><p class="cl-instr"><button id="'+P+'spk" aria-label="Listen to the instruction">'+C.ico.spk+'</button><span id="'+P+'line"></span><button id="'+P+'slw" data-slow="1" aria-label="Listen slowly">Slow</button></p><div id="'+P+'how"></div><div class="cl-pic" id="'+P+'pic"></div></div></div><div class="cl-R"><div class="cl-mid"><div class="cl-act" id="'+P+'act"></div><div id="'+P+'fb" aria-live="polite"></div><div class="cl-row" id="'+P+'nx"></div><p class="cl-note" id="'+P+'note"></p></div><div class="cl-nav"><button class="cl-back" id="'+P+'back">Back</button><span class="cl-hint" id="'+P+'hint"></span><button class="cl-pri" id="'+P+'next">Next</button></div></div>';
+function sync(){var s=st[n];C.$('next').disabled=!ok;C.$('next').textContent=n===0?(C.get('step',0)>0?'Continue':'Start'):(s.next||'Next');C.$('back').style.visibility=n?'visible':'hidden';C.$('hint').textContent=ok?'':(s.hint||'')}
+function go(i){n=i;var s=st[n],p=s.stage?(s.stage==1?0:s.stage==8?2:1):-1,b='',k,hw=C.get('how',[]),hb=C.$('how');clearTimeout(tm);if(n>0)C.set('step',n);
+for(k=1;k<=8;k++)b+='<span class="cl-dot'+(k==s.stage?' on':k<s.stage?' ok':'')+'"'+(k==s.stage?' aria-current="step"':'')+' aria-label="Stage '+k+'">'+k+'</span>';
+C.$('bar').innerHTML='<div><strong>'+(p<0?esc(cfg.label):'Part '+(p+1)+' of 3: '+C.parts[p])+'</strong>'+(p<0?'':'. Stage '+s.stage+' of 8: '+C.stages[s.stage-1])+'</div><div class="cl-dots">'+b+'</div>';
+C.$('title').textContent=s.title;C.$('line').textContent=s.line;C.$('spk').setAttribute('data-say',s.line);C.$('slw').setAttribute('data-say',s.line);
+C.$('fb').innerHTML='';C.$('nx').innerHTML='';hb.innerHTML='';C.note('');C.$('act').innerHTML='';C.$('pic').innerHTML='';ok=!s.gate||!!dn[n];
+if(s.how&&hw.indexOf(s.how)<0){hw.push(s.how);C.set('how',hw);hb.innerHTML='<div class="cl-how"><svg width="90" height="48" viewBox="0 0 90 48" aria-hidden="true"><rect x="6" y="8" width="46" height="26" rx="8" fill="#F4A100"/><g transform="translate(34 16)"><g class="cl-tap"><path d="M0 0V20L5 15L9 24L13 22L9 13H16Z" fill="#0F2A43"/></g></g></svg><span><strong>How it works.</strong> '+esc(s.line)+'</span></div>';tm=setTimeout(function(){hb.innerHTML=''},5000)}
+s.render(C.$('act'),{done:function(){ok=true;dn[n]=1;C.set('done',dn);sync()},fb:function(k,h,l){C.fb(C.$('fb'),k,h,l)},clear:function(){C.$('fb').innerHTML='';C.$('nx').innerHTML=''},pic:function(h){C.$('pic').innerHTML=h}});
+sync();window.scrollTo(0,0)}
+root.addEventListener('click',function(e){var b=e.target.closest('[data-say]');if(b)C.say(b.getAttribute('data-say'),b.hasAttribute('data-slow'))});
+C.$('back').onclick=function(){go(n-1)};
+C.$('next').onclick=function(){if(n===0){if(cfg.welcome)C.say(cfg.welcome);go(Math.min(Math.max(1,C.get('step',0)),st.length-1))}else if(n<st.length-1)go(n+1);else{C.set('step',0);go(0)}};
+setTimeout(function(){C.note('You worked for 30 minutes. Please take a rest.')},1800000);
+go(0)};
+return C})();
+/* COMMON BLOCK END */
+
+/* ===== EXPERIMENT 1: DATA (text, situations, word lists) ===== */
+var C=CLab,esc=C.esc;
+var D={
+towns:['Madurai','Nashik','Jorhat','Udupi','Kota','Bhuj'],
+hobbies:[{k:'reading',why:'it is quiet'},{k:'drawing',why:'I can make new pictures'},{k:'cricket',why:'it is fun with friends'},{k:'singing',why:'it makes me happy'},{k:'cooking',why:'I can make food for my family'},{k:'gardening',why:'I can grow plants'},{k:'football',why:'it is a team game'},{k:'dancing',why:'I move to the music'},{k:'chess',why:'it makes me think'},{k:'cycling',why:'I see new places'}],
+tones:{aggressive:['Unkind','feels hurt.'],passive:['Too quiet','does not know what you want.'],assertive:['Clear and kind','feels happy and welcome.']},
+cards:[
+{t:'Say hello',p:'Good morning, everyone.',e:'Look at your class. Smile.',s:'Good morning, everyone.'},
+{t:'Say your name',p:'My name is ___.',e:'Example: My name is Asha.',s:'My name is Asha.'},
+{t:'Say your age and town',p:'I am ___ years old. I am from ___.',e:'Example: I am 12 years old. I am from Kota.',s:'I am 12 years old. I am from Kota.'},
+{t:'Say what you like',p:'I like ___.',e:'Example: I like reading and chess.',s:'I like reading and chess.'},
+{t:'Say a kind end',p:'Nice to meet you. Thank you.',e:'Say it slowly. Look at one person.',s:'Nice to meet you. Thank you.'}],
+mouth:['The tongue rests behind the teeth.','The tongue tip goes between the teeth.','Air flows over the tongue. The voice is off.'],
+conf:{thank:['tank','sank','dank','tenk','thang','tang']},
+Q:{basic:[
+{ask:'Where are you from?',say:'I am from {town}.',skip:'{town}',bad:[['I from {town}.','Say "I am from".'],['I am {town}.','Add the word "from".']]},
+{ask:'What do you like to do?',say:'I like {list}.',bad:[['I am like {list}.','Say "I like". Do not say "am".'],['I likes {list}.','Say "I like". Do not add s.']]},
+{ask:'How old are you?',say:'I am {age} years old.',skip:'{age}',bad:[['I have {age} years.','Say "I am" for your age.'],['I am {age} year old.','Say "years" for more than 1.']]}],
+inter:[
+{ask:'Where are you from?',say:'I am from {town}, and I am new here.',skip:'{town}',bad:[['I am from {town}, and I new here.','Say "I am new here".'],['I am {town}, and I am new here.','Add the word "from".']]},
+{ask:'Why do you like {h1}?',say:'I like {h1} because {why}.',bad:[['I like {h1} so {why}.','Use "because" to give a reason.'],['Because I like {h1}.','Say the reason after "because".']]},
+{ask:'Do you want to sit with me?',say:'Yes, please. Thank you.',bad:[['No. I do not want to.','','aggressive'],['I do not know. Maybe.','','passive']]}]},
+kind:[
+{who:'Kavya',say:'Hello. What is your name?',tip:'Tip: look at the person and smile.',opts:[{t:'Why do you ask?',tone:'aggressive'},{t:'My name... it does not matter.',tone:'passive'},{t:'Hello. My name is {name}. Nice to meet you.',tone:'assertive',ok:1}]},
+{who:'Kavya',say:'You are new. Do you want to sit with us?',opts:[{t:'No. I want to sit alone.',tone:'aggressive'},{t:'I do not know. Maybe. If you want.',tone:'passive'},{t:'Yes, please. Thank you. That is kind.',tone:'assertive',ok:1}]},
+{who:'Mr Singh',say:'Please say your name again. I did not hear you.',opts:[{t:'You must listen better.',tone:'aggressive'},{t:'Sorry. It is not important.',tone:'passive'},{t:'Yes, Mr Singh. My name is {name}.',tone:'assertive',ok:1}]}],
+poss:[
+{pic:'kavya',ask:'Look at Kavya. Complete: ___ name is Kavya.',good:'Good. Use "Her" for a girl.',opts:[{t:'Her',ok:1},{t:'My',m:'Use "My" for yourself. Kavya is another person.'},{t:'His',m:'Kavya is a girl. Use "Her".'}]},
+{pic:'singh',ask:'Look at Mr Singh. Complete: ___ name is Mr Singh.',good:'Good. Use "His" for a man.',opts:[{t:'His',ok:1},{t:'Her',m:'Mr Singh is a man. Use "His".'},{t:'Your',m:'Use "Your" when you talk to him, not about him.'}]},
+{ask:'You talk to Kavya. Complete: What is ___ name?',good:'Good. Use "your" for the person you talk to.',opts:[{t:'your',ok:1},{t:'my',m:'Use "my" for yourself.'},{t:'her',m:'Use "your" when you talk to Kavya.'}]}],
+idea:{greet:['You started with a greeting.','Start with a greeting. Say "Good afternoon."'],name:['You said your name.','Say your name. Say "My name is ...".'],age:['You said your age.','Say your age. Say "I am ... years old."'],town:['You said your town.','Say your town. Say "I am from ...".'],like:['You said what you like.','Say what you like. Say "I like ...".'],meet:['You said a kind end.','End with "Nice to meet you."']},
+can:['I can introduce myself to my class.','I can answer a classmate in a kind way.','I can say th in thank you.']
+};
+var IDEA={
+greet:function(t){return/ (hello|hi|good (morning|afternoon|evening)) /.test(t)},
+name:function(t,p){return t.indexOf(' '+p.name.toLowerCase()+' ')>-1||/ my name is \w+ /.test(t)},
+age:function(t,p){return t.indexOf(' '+p.age+' ')>-1||/ (ten|eleven|twelve|thirteen|fourteen|fifteen) years /.test(t)},
+town:function(t,p){return t.indexOf(' '+p.town.toLowerCase()+' ')>-1||/ i am from \w+ /.test(t)},
+like:function(t,p){return p.hobbies.some(function(h){return t.indexOf(h.slice(0,4))>-1})||/ i like \w+ /.test(t)},
+meet:function(t){return/ nice to meet you /.test(t)}};
+
+/* ===== EXPERIMENT 1: PICTURES (original inline SVG) ===== */
+function person(x,y,s,shirt,hair,skin,o){o=o||{};var L='stroke-linecap="round"';return'<g transform="translate('+x+' '+y+') scale('+s+')">'+(o.bag?'<rect x="-36" y="-92" width="20" height="44" rx="7" fill="#D64933"/>':'')
++'<rect x="-15" y="-40" width="12" height="40" rx="5" fill="#1B4965"/><rect x="3" y="-40" width="12" height="40" rx="5" fill="#1B4965"/><rect x="-22" y="-98" width="44" height="64" rx="14" fill="'+shirt+'"/>'
++(o.wave?'<path d="M20 -88L44 -122" stroke="'+shirt+'" stroke-width="12" '+L+'/><circle cx="46" cy="-126" r="7" fill="'+skin+'"/>':'<path d="M21 -88L26 -52" stroke="'+shirt+'" stroke-width="12" '+L+'/>')
++'<path d="M-21 -88L-26 -52" stroke="'+shirt+'" stroke-width="12" '+L+'/><circle cy="-120" r="22" fill="'+skin+'"/><path d="M-23 -122Q-22 -148 0 -147Q23 -148 23 -122Q8 -136 -23 -122Z" fill="'+hair+'"/>'
++'<circle cx="-8" cy="-118" r="2.5" fill="#0F2A43"/><circle cx="8" cy="-118" r="2.5" fill="#0F2A43"/><path d="M-8 -109Q0 -102 8 -109" stroke="#0F2A43" stroke-width="2.5" fill="none" '+L+'/></g>'}
+function svg(w,h,label,inner,cls){return'<svg'+(cls?' class="'+cls+'"':'')+' viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+label+'"><title>'+label+'</title>'+inner+'</svg>'}
+var KAV=['#F4A100','#0F2A43','#C98B5E'],SIN=['#1B4965','#8A8F98','#D9A07A'];
+function scene(){return svg(600,300,'A classroom. A new student with a bag stands near a classmate who waves and a teacher.','<rect width="600" height="300" fill="#CDE9F6"/><rect y="225" width="600" height="75" fill="#F2E6CF"/><rect x="40" y="40" width="110" height="95" rx="6" fill="#fff" stroke="#1B4965" stroke-width="4"/><path d="M95 40V135M40 88H150" stroke="#1B4965" stroke-width="3"/><rect x="220" y="36" width="210" height="100" rx="8" fill="#1B4965"/><path d="M240 62h90M240 86h130M240 110h70" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/><rect x="500" y="60" width="80" height="165" rx="6" fill="#B9783F"/><circle cx="560" cy="148" r="5" fill="#F4A100"/><rect x="170" y="208" width="100" height="10" rx="3" fill="#B9783F"/><rect x="180" y="218" width="8" height="30" fill="#B9783F"/><rect x="252" y="218" width="8" height="30" fill="#B9783F"/>'
++person(110,285,1,'#1F9E8F','#0F2A43','#E0A878',{bag:1})+person(330,285,1,KAV[0],KAV[1],KAV[2],{wave:1})+person(450,285,1.1,SIN[0],SIN[1],SIN[2]),'cl-scene')}
+function gate(){return svg(300,170,'A school gate. You stand with a bag. The mother of Kavya waits at the gate.','<rect width="300" height="170" fill="#CDE9F6"/><rect y="132" width="300" height="38" fill="#F2E6CF"/><rect x="132" y="52" width="10" height="84" fill="#1B4965"/><rect x="170" y="52" width="10" height="84" fill="#1B4965"/><path d="M142 66h28M142 92h28M142 118h28" stroke="#1B4965" stroke-width="5"/>'+person(70,160,.8,'#1F9E8F','#0F2A43','#E0A878',{bag:1})+person(235,160,.85,'#D64933','#0F2A43','#C98B5E',{wave:1}),'cl-scene')}
+function pp(k){return svg(120,150,k=='kavya'?'Kavya':'Mr Singh','<rect width="120" height="150" rx="14" fill="#CDE9F6"/>'+(k=='kavya'?person(60,142,.9,KAV[0],KAV[1],KAV[2]):person(60,142,.9,SIN[0],SIN[1],SIN[2])))}
+function useSvg(k){var a=['A class with a board and two students','Two houses with a neighbour','A tent and a tree at a camp'][k],b='<rect width="160" height="110" rx="12" fill="#CDE9F6"/>';
+if(k==0)b+='<rect x="20" y="14" width="120" height="36" rx="4" fill="#1B4965"/><path d="M32 28h50M32 40h70" stroke="#fff" stroke-width="3"/><rect y="98" width="160" height="12" fill="#F2E6CF"/>'+person(52,102,.34,KAV[0],KAV[1],KAV[2],{wave:1})+person(108,102,.34,'#1F9E8F','#0F2A43','#E0A878');
+if(k==1)b+='<rect y="96" width="160" height="14" fill="#F2E6CF"/><rect x="10" y="52" width="56" height="44" fill="#F2E6CF"/><path d="M4 54L38 26L72 54Z" fill="#D64933"/><rect x="30" y="70" width="14" height="26" fill="#B9783F"/><rect x="92" y="52" width="56" height="44" fill="#fff"/><path d="M86 54L120 26L154 54Z" fill="#1B4965"/><rect x="112" y="70" width="14" height="26" fill="#B9783F"/>'+person(80,104,.3,KAV[0],KAV[1],KAV[2],{wave:1});
+if(k==2)b+='<circle cx="28" cy="26" r="12" fill="#F4A100"/><rect y="96" width="160" height="14" fill="#CFE6C8"/><path d="M26 98L68 44L110 98Z" fill="#F4A100"/><path d="M68 44V98" stroke="#0F2A43" stroke-width="3"/><path d="M56 98L68 70L80 98Z" fill="#0F2A43"/><rect x="128" y="68" width="8" height="30" fill="#B9783F"/><circle cx="132" cy="56" r="18" fill="#1F9E8F"/>';
+return svg(160,110,a,b)}
+function badge(){return svg(200,200,'Badge for Meet and Greet','<circle cx="100" cy="100" r="92" fill="#F4A100"/><circle cx="100" cy="100" r="76" fill="#0F2A43"/><rect x="48" y="62" width="70" height="46" rx="12" fill="#CDE9F6"/><path d="M62 108l-4 16l22-16z" fill="#CDE9F6"/><rect x="82" y="92" width="70" height="46" rx="12" fill="#fff"/><path d="M138 138l6 16l-22-16z" fill="#fff"/><path d="M102 116l10 10l20-22" stroke="#1F9E8F" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>').replace('<svg','<svg width="160" height="160"')}
+function mouth(c){return svg(320,230,'Side view of the mouth. The tongue tip is between the teeth for th.','<rect width="320" height="230" rx="20" fill="#CDE9F6"/><rect x="30" y="18" width="236" height="196" rx="30" fill="#F0C3A8"/><path d="M78 94Q150 78 230 94V142Q150 160 92 152Q66 132 78 94Z" fill="#8E2F3C"/><rect x="226" y="90" width="24" height="24" rx="6" fill="#fff" stroke="#9AA3AD" stroke-width="2"/><rect x="226" y="128" width="24" height="24" rx="6" fill="#fff" stroke="#9AA3AD" stroke-width="2"/><g class="cl-tongue"><path d="M90 150Q108 118 150 120Q192 120 210 130Q216 138 206 143Q170 152 118 154Z" fill="#E88A8F"/></g><path d="M246 86Q282 86 280 112Q264 118 246 114Z" fill="#C85A57"/><path d="M246 128Q264 124 280 130Q282 158 246 156Z" fill="#C85A57"/><g class="cl-air" fill="none" stroke="#0F2A43" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M150 104Q196 98 224 108"/><path d="M217 100l9 8-11 3"/><path d="M284 121h24"/><path d="M301 114l8 7-8 7"/></g><path d="M52 196h30" stroke="#0F2A43" stroke-width="4" stroke-linecap="round"/><text x="90" y="202" font-size="16" fill="#0F2A43" font-family="Verdana,Arial,sans-serif">Voice off</text>',c)}
+
+/* ===== EXPERIMENT 1: ACTIVITIES ===== */
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function prof(){var d={name:'Asha',age:12,town:'Madurai',hobbies:['reading','drawing']},p=C.get('profile',{}),k,w={},h;for(k in d)if(!p[k]||(k=='hobbies'&&!p[k].length))p[k]=d[k];h=p.hobbies;D.hobbies.forEach(function(x){w[x.k]=x.why});
+p.list=h.length>1?h.slice(0,-1).join(', ')+' and '+h[h.length-1]:h[0];p.h1=h[0];p.why=w[h[0]]||'it is fun';p.inter=C.get('level','basic')=='inter';return p}
+function T(s){var p=prof();return String(s).replace(/\{(\w+)\}/g,function(m,k){return p[k]})}
+function save(k,v){var p=C.get('profile',{});p[k]=v;C.set('profile',p)}
+function toneMsg(t,who){var x=D.tones[t];return'This reply is "'+x[0]+'". '+who+' '+x[1]}
+function parts(){var p=prof(),i=p.inter;return['Good morning, everyone. My name is '+p.name+'.','I am '+p.age+' years old. I am from '+p.town+'.'+(i?' I am new in this class.':''),'I like '+p.list+'.'+(i?' I like '+p.h1+' because '+p.why+'.':'')+' Nice to meet you. Thank you.']}
+function mastery(){var a=C.get('skill',[]);return a.length<2?'Started':a.slice(-2).every(function(x){return x===0})?'Confident':'Practising'}
+function freeCheck(text,keys,clear){var t=' '+String(text).toLowerCase().replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ')+' ',p=prof(),f=[],m=[];keys.forEach(function(k){(IDEA[k](t,p)?f:m).push(k)});
+var b=f.length>=clear?0:f.length>=2?1:2;return{band:b,lines:b?[f.length?D.idea[f[0]][0]:'Good try. Say a little more.',D.idea[m[0]][1]]:['Well done. Your answer is correct.']}}
+function pick(el,list,sel,max,cb){el.innerHTML=list.map(function(o){return'<button class="cl-chip" data-k="'+esc(o.k)+'" aria-pressed="false">'+esc(o.t)+'</button>'}).join('');
+function sync(){[].forEach.call(el.children,function(b){b.setAttribute('aria-pressed',sel.indexOf(b.getAttribute('data-k'))>-1)})}
+el.onclick=function(e){var b=e.target.closest('.cl-chip');if(!b)return;var k=b.getAttribute('data-k'),at=sel.indexOf(k);if(max==1){sel.length=0;sel.push(k)}else if(at>-1)sel.splice(at,1);else if(sel.length<max)sel.push(k);else{cb(sel,'max');return}sync();cb(sel,k)};sync()}
+
+function speak(box,S,items){var i=0;
+function grade(it,a){if(it.free)return it.free(a[0]);var r=C.compare(T(it.say),a,it.conf,it.skip?C.words(T(it.skip)):[]);
+if(!r.band)return{band:0,lines:['Well done. Your answer is correct.']};
+if(r.band==2)return{band:2,lines:['Good try. Listen to the sentence once more.','Then say it once more.']};
+return{band:1,lines:['Good. You said most of the words.',r.swap.length&&/th/.test(r.swap[0][0])?'Say "th" in "'+r.swap[0][0]+'". Put your tongue tip between your teeth.':'Say this word again: '+(r.miss[0]||r.swap[0][0])+'.']}}
+function show(){var it=items[i],h='',opts=[];S.clear();
+if(items.length>1)h+='<p class="cl-note">Part '+(i+1)+' of '+items.length+'</p>';
+S.pic(it.pic||'');
+h+=it.ask?'<div class="cl-card"><strong>'+esc(it.who||'Kavya')+' says:</strong>'+C.audio(T(it.ask))+(it.clue?'<p class="cl-note">'+esc(it.clue)+'</p>':'')+'</div>':'<div class="cl-card"><strong>Say this:</strong>'+C.audio(T(it.say))+'</div>';
+h+=C.canListen?'<div class="cl-row"><button class="cl-go" id="cl-exp01-mic">'+C.ico.mic+'Say it</button></div>':'<p class="cl-note">Speech is not available here. Please type or choose.</p>';
+h+='<div class="cl-row"><label for="cl-exp01-in">'+(C.canListen?'Or type your answer':'Type your answer')+'</label><input id="cl-exp01-in" type="text" autocomplete="off"><button class="cl-go" id="cl-exp01-chk">Check</button></div>';
+if(it.bad){opts=shuf([{t:T(it.say),ok:1}].concat(it.bad.map(function(x){return{t:T(x[0]),m:x[2]?toneMsg(x[2],it.who||'Kavya'):x[1]}})));h+='<p>Or choose an answer.</p><div class="cl-opts">'+opts.map(function(o,k){return'<button class="cl-opt" data-k="'+k+'">'+esc(o.t)+'</button>'}).join('')+'</div>'}
+h+='<p class="cl-note" id="cl-exp01-heard"></p>';box.innerHTML=h;
+function res(r){S.fb(r.band,C.bands[r.band],r.lines);if(it.onres)it.onres(r);
+if(r.band<2||it.any){if(i<items.length-1&&r.band<2){C.$('nx').innerHTML='<button class="cl-pri" id="cl-exp01-nq">Next question</button>';C.$('nq').onclick=function(){i++;show()}}else S.done()}}
+var mic=C.$('mic'),inp=C.$('in'),heard=C.$('heard');
+if(mic)mic.onclick=function(){mic.disabled=true;mic.lastChild.textContent='Listening...';heard.textContent='Speak now. It stops by itself.';C.listen(function(a,err){mic.disabled=false;mic.lastChild.textContent='Say it';heard.textContent='';if(!a){S.fb(2,err=='denied'?'The mic is off':'We could not hear you',[err=='denied'?'Allow the mic, or type your answer.':'Please try once more, or type your answer.']);return}heard.textContent='We heard: '+a[0];res(grade(it,a))})};
+function chk(){var v=inp.value.trim();if(!v){S.fb(2,'Type your answer',['Type your answer.']);return}heard.textContent='';res(grade(it,[v]))}
+C.$('chk').onclick=chk;inp.onkeydown=function(e){if(e.key==='Enter')chk()};
+[].forEach.call(box.querySelectorAll('.cl-opt'),function(b){b.onclick=function(){var o=opts[+b.getAttribute('data-k')];res(o.ok?{band:0,lines:['Well done. Your answer is correct.']}:{band:2,lines:['Not correct. Try once more.',o.m]})}})}
+show()}
+
+function quiz(box,S,items){var i=0;
+function show(){var it=items[i],o=shuf(it.opts),h='';S.clear();
+S.pic(it.pic?pp(it.pic):'');h+='<div class="cl-card">'+(it.who?'<strong>'+esc(it.who)+' says:</strong>':'')+(it.say?C.audio(T(it.say)):'<p>'+esc(it.ask)+'</p>')+(it.tip?'<p class="cl-note">'+esc(it.tip)+'</p>':'')+'</div><div class="cl-opts">'+o.map(function(x,k){return'<button class="cl-opt" data-k="'+k+'">'+esc(T(x.t))+'</button>'}).join('')+'</div><div id="cl-exp01-tw"></div>';box.innerHTML=h;
+[].forEach.call(box.querySelectorAll('.cl-opt'),function(b){b.onclick=function(){var x=o[+b.getAttribute('data-k')];
+if(!x.ok){S.fb(2,'Not correct',['Not correct. Try once more.',x.tone?toneMsg(x.tone,it.who):T(x.m)]);return}
+S.fb(0,'Correct',['Well done. Your answer is correct.',it.good||'Your reply is clear and kind.']);
+if(o[0].tone)C.$('tw').innerHTML='<div class="cl-card"><strong>Three ways to say it</strong>'+it.opts.map(function(y){return'<p><strong>'+D.tones[y.tone][0]+':</strong> '+esc(T(y.t))+'</p>'}).join('')+'</div>';
+if(i<items.length-1){C.$('nx').innerHTML='<button class="cl-pri" id="cl-exp01-nq">Next question</button>';C.$('nq').onclick=function(){i++;show()}}else S.done()}})}
+show()}
+
+function order(box,S,list){var i=0;
+function show(){var w=T(list[i]).replace(/\.$/,'').split(' '),id=w.map(function(x,k){return k}),pool=id,ans=[],t=0;do{pool=shuf(id)}while(pool.join()===id.join()&&t++<9);S.clear();
+box.innerHTML='<div class="cl-card"><strong>Your sentence:</strong><div class="cl-chips" id="cl-exp01-an" style="min-height:44px"></div></div><div class="cl-chips" id="cl-exp01-pl"></div>';
+function check(){var bad=-1;ans.forEach(function(k,j){if(bad<0&&w[k]!==w[j])bad=j});
+if(bad<0){S.fb(0,'Correct',['Well done. Your answer is correct.','Now say the sentence aloud.']);C.say(w.join(' ')+'.');
+if(i<list.length-1){C.$('nx').innerHTML='<button class="cl-pri" id="cl-exp01-nq">Next sentence</button>';C.$('nq').onclick=function(){i++;show()}}else S.done()}
+else S.fb(2,'Not correct',['Not correct. Try once more.','Look at word number '+(bad+1)+'. Tap a word to remove it.'])}
+function draw(){C.$('an').innerHTML=ans.map(function(k){return'<button class="cl-chip" data-a="'+k+'">'+esc(w[k])+'</button>'}).join('');C.$('pl').innerHTML=pool.filter(function(k){return ans.indexOf(k)<0}).map(function(k){return'<button class="cl-chip" data-p="'+k+'">'+esc(w[k])+'</button>'}).join('');if(ans.length==w.length)check()}
+box.onclick=function(e){var b=e.target.closest('.cl-chip');if(!b)return;if(b.hasAttribute('data-p'))ans.push(+b.getAttribute('data-p'));else if(b.hasAttribute('data-a'))ans.splice(ans.indexOf(+b.getAttribute('data-a')),1);else return;S.clear();C.$('nx').innerHTML='';draw()};draw()}
+show()}
+
+function plan(b,S){var lv=C.get('level',null),sel=lv?[lv]:[];
+b.innerHTML='<div class="cl-card"><strong>Today you will:</strong><ol><li>Make your own introduction.</li><li>Answer three questions.</li><li>Say th in thank you.</li></ol></div><p>Choose your level.</p><div class="cl-chips" id="cl-exp01-ch"></div>';
+pick(C.$('ch'),[{k:'basic',t:'Basic: short answers'},{k:'inter',t:'Intermediate: answers with a reason'}],sel,1,function(s){C.set('level',s[0]);S.fb(0,'Saved',['You chose '+(s[0]=='basic'?'Basic':'Intermediate')+'. You can change it here.']);S.done()})}
+function learn(b,S){var seen={},n=0;b.innerHTML='<p>Mr Singh says: "Please tell us about yourself."</p>';
+D.cards.forEach(function(c,i){b.appendChild(C.h('div',{class:'cl-card',html:'<h3>'+(i+1)+'. '+esc(c.t)+' <span id="cl-exp01-s'+i+'"></span></h3><p><strong>'+esc(c.p)+'</strong></p><p class="cl-note">'+esc(c.e)+'</p><div class="cl-row"><button data-i="'+i+'">'+C.ico.spk+'Play</button><button data-i="'+i+'" data-slow="1">'+C.ico.spk+'Slow</button></div>'}))});
+b.onclick=function(e){var x=e.target.closest('button[data-i]');if(!x)return;var i=+x.getAttribute('data-i');C.say(D.cards[i].s,x.hasAttribute('data-slow'));
+if(!seen[i]){seen[i]=1;n++;C.$('s'+i).innerHTML=C.ico.ok+' Heard';if(n==D.cards.length){S.fb(0,'All cards done',['Well done. You heard all 5 cards.']);S.done()}}}}
+function mouthStep(b,S){var red=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,cap=D.mouth,h='<p>The sound <strong>th</strong> in <strong>thank</strong>. Your voice is off.</p>';
+if(red)h+='<div class="cl-frames">'+[1,2,3].map(function(n){return'<figure>'+mouth('cl-f'+n)+'<figcaption><strong>'+n+'.</strong> '+cap[n-1]+'</figcaption></figure>'}).join('')+'</div>';
+else{S.pic('<div id="cl-exp01-mw">'+mouth('cl-anim')+'</div>');h+='<div class="cl-mouth"><div class="cl-row"><button id="cl-exp01-pp">Pause</button><button id="cl-exp01-hs">Half speed: off</button></div><ol>'+cap.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ol></div>'}
+b.innerHTML=h+C.audio('Thank you.');
+if(!red){var w=C.$('mw'),p=0,s=0;C.$('pp').onclick=function(){p=!p;w.classList.toggle('cl-paused',p);this.textContent=p?'Play':'Pause'};C.$('hs').onclick=function(){s=!s;w.style.setProperty('--d',s?'4s':'2s');this.textContent='Half speed: '+(s?'on':'off')}}}
+function nameStep(b,S){var p=C.get('profile',{});b.innerHTML='<label for="cl-exp01-in">What is your name?</label><div class="cl-row"><input id="cl-exp01-in" type="text" maxlength="20" autocomplete="off" value="'+esc(p.name||'')+'"><button class="cl-go" id="cl-exp01-sv">Save</button></div>';
+function go(){var v=C.$('in').value.replace(/[^A-Za-z ]/g,'').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,function(c){return c.toUpperCase()});if(v.length<2){S.fb(2,'Not saved',['Type at least 2 letters.']);return}save('name',v);S.fb(0,'Saved',['Well done. Your name is '+v+'.']);S.done()}
+C.$('sv').onclick=go;C.$('in').onkeydown=function(e){if(e.key==='Enter')go()}}
+function ageStep(b,S){var a=C.get('profile',{}).age,sel=a?[String(a)]:[];b.innerHTML='<p>How old are you?</p><div class="cl-chips" id="cl-exp01-ch"></div>';
+pick(C.$('ch'),[10,11,12,13,14,15].map(function(x){return{k:String(x),t:String(x)}}),sel,1,function(s){save('age',+s[0]);S.fb(0,'Saved',['You are '+s[0]+' years old.']);S.done()})}
+function townStep(b,S){var t=C.get('profile',{}).town,sel=t?[t]:[];b.innerHTML='<p>Where are you from?</p><div class="cl-chips" id="cl-exp01-ch"></div><div class="cl-row"><label for="cl-exp01-in">Or type your town</label><input id="cl-exp01-in" type="text" maxlength="20" autocomplete="off"><button class="cl-go" id="cl-exp01-sv">Save</button></div>';
+function fin(v){save('town',v);S.fb(0,'Saved',['Your town is '+v+'.']);S.done()}
+pick(C.$('ch'),D.towns.map(function(x){return{k:x,t:x}}),sel,1,function(s){fin(s[0])});
+function typed(){var v=C.$('in').value.replace(/[^A-Za-z ]/g,'').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,function(c){return c.toUpperCase()});if(v.length<2){S.fb(2,'Not saved',['Type at least 2 letters.']);return}sel.length=0;[].forEach.call(C.$('ch').children,function(x){x.setAttribute('aria-pressed','false')});fin(v)}
+C.$('sv').onclick=typed;C.$('in').onkeydown=function(e){if(e.key==='Enter')typed()}}
+function hobbyStep(b,S){var sel=(C.get('profile',{}).hobbies||[]).slice();b.innerHTML='<p>Choose two or three hobbies.</p><div class="cl-chips" id="cl-exp01-ch"></div>';
+pick(C.$('ch'),D.hobbies.map(function(h){return{k:h.k,t:h.k.charAt(0).toUpperCase()+h.k.slice(1)}}),sel,3,function(s,k){if(k=='max'){S.fb(1,'Only three',['Choose only three. Tap one to remove it.']);return}save('hobbies',s.slice());if(s.length>1){S.fb(0,'Saved',['You chose '+s.join(', ')+'.']);S.done()}else S.fb(1,'One more',['Choose one more hobby.'])})}
+function introStep(b){var t=parts().join(' ');b.innerHTML='<p>This is your introduction.</p><div class="cl-card">'+parts().map(function(x){return'<p>'+esc(x)+'</p>'}).join('')+'</div>'+C.audio(t)}
+function skillStep(b,S){speak(b,S,[{who:'Mr Singh',ask:'Please tell me about yourself.',clue:'Say as much as you can.',any:1,free:function(t){var p=prof();return freeCheck(t,['greet','name','age','town','like','meet'],p.inter?5:4)},onres:function(r){var a=C.get('skill',[]);a.push(r.band);C.set('skill',a.slice(-10))}}])}
+function canStep(b){var r=C.get('rate',{});b.innerHTML=D.can.map(function(x,i){return'<div class="cl-card"><p><strong>'+esc(x)+'</strong></p><div class="cl-chips" id="cl-exp01-r'+i+'"></div></div>'}).join('');
+D.can.forEach(function(x,i){pick(C.$('r'+i),['Not yet','Almost','Yes'].map(function(y){return{k:y,t:y}}),r[i]?[r[i]]:[],1,function(s){r[i]=s[0];C.set('rate',r)})})}
+function endStep(b){b.innerHTML='<div class="cl-row">'+badge()+'<div><p><strong>Meet and Greet</strong></p><p>Skill check: <strong>'+mastery()+'</strong></p></div></div><div class="cl-card"><strong>Use it today</strong><p>Say hello to one new person. Say your name.</p><p>Practise again tomorrow.</p></div>'}
+
+var STEPS=[
+{stage:0,title:'Meet and Greet',line:'Press Start.',render:function(b,S){S.pic(scene());b.innerHTML='<p>You are the new student in a class.</p>'+C.audio('Welcome. Today you will meet a new class.')}},
+{stage:1,title:'A new student',line:'Look at the picture.',render:function(b,S){S.pic(scene());b.innerHTML='<p>You are the new student. Kavya and Mr Singh say hello.</p>'+C.audio('Today you will learn to introduce yourself.')}},
+{stage:1,title:'Why we need this',line:'Read the text.',render:function(b){var t=['In a new class.','With a new neighbour.','At a camp.'];b.innerHTML='<p>We introduce ourselves in many places.</p><div class="cl-three">'+t.map(function(x,i){return'<div class="cl-card">'+useSvg(i)+'<p>'+x+'</p></div>'}).join('')+'</div>'}},
+{stage:1,title:'Our plan',line:'Choose one answer.',gate:1,hint:'Choose a level to go on.',render:plan},
+{stage:2,title:'Key phrases',line:'Tap Play on each card.',gate:1,hint:'Play all 5 cards to go on.',how:'tap',render:learn},
+{stage:3,title:'The sound th',line:'Watch the mouth.',render:mouthStep},
+{stage:3,title:'Say thank you',line:'Say the sentence aloud.',gate:1,hint:'Say or type the sentence to go on.',how:'say',render:function(b,S){speak(b,S,[{say:'Thank you.',conf:D.conf,pic:'<p class="cl-note">Tip: put your tongue tip between your teeth for th.</p>'},{say:'Thank you, Mr Singh.',conf:D.conf,skip:'mr singh'}])}},
+{stage:4,title:'Your name',line:'Type your answer.',gate:1,hint:'Save your name to go on.',how:'type',render:nameStep},
+{stage:4,title:'Your age',line:'Choose one answer.',gate:1,hint:'Choose your age to go on.',render:ageStep},
+{stage:4,title:'Your town',line:'Choose one answer.',gate:1,hint:'Choose or type your town.',render:townStep},
+{stage:4,title:'Your hobbies',line:'Choose two or three answers.',gate:1,hint:'Choose two or three hobbies.',render:hobbyStep},
+{stage:4,title:'Your introduction',line:'Read the text.',render:introStep},
+{stage:4,title:'Build your sentences',line:'Tap the words in the correct order.',gate:1,hint:'Put both sentences in order.',how:'order',render:function(b,S){order(b,S,['I am {age} years old.','I am from {town}.'])}},
+{stage:4,title:'My, your, her, his',line:'Choose one answer.',gate:1,hint:'Answer all 3 questions to go on.',render:function(b,S){quiz(b,S,D.poss)}},
+{stage:5,title:'Choose the kinder reply',line:'Choose the kinder sentence.',gate:1,hint:'Answer all 3 questions to go on.',render:function(b,S){quiz(b,S,D.kind)}},
+{stage:6,title:'Situation 1: Your introduction',line:'Say the sentence aloud.',gate:1,hint:'Say all 3 parts to go on.',render:function(b,S){speak(b,S,parts().map(function(t,k){return{say:t,skip:'{name} {town} {age}',pic:k?'':scene()+'<p>Mr Singh says: "Please tell us about yourself."</p>'}}))}},
+{stage:6,title:'Situation 2: Questions from Kavya',line:'Say your answer.',gate:1,hint:'Answer all 3 questions to go on.',render:function(b,S){speak(b,S,D.Q[prof().inter?'inter':'basic'].map(function(x){return{ask:x.ask,say:x.say,skip:x.skip,bad:x.bad,who:'Kavya'}}))}},
+{stage:6,title:"Situation 3: Kavya's mother",line:'Say your answer.',gate:1,hint:'Say your answer to go on.',render:function(b,S){speak(b,S,[{who:"Kavya's mother",ask:'Good afternoon. You must be the new student. What is your name?',clue:prof().inter?'Clues: a greeting, your name, your town, a kind end.':'Clues: a greeting, your name, a kind end.',pic:gate(),free:function(t){var k=prof().inter?['greet','name','town','meet']:['greet','name','meet'];return freeCheck(t,k,k.length)}}])}},
+{stage:7,title:'Skill check',line:'Do this task on your own.',gate:1,hint:'Try the task once to go on.',render:skillStep},
+{stage:8,title:'Key sentences',line:'Listen to the sentence.',render:function(b){b.innerHTML='<p>Today you learned to introduce yourself and answer questions.</p>'+['Good morning, everyone.','My name is {name}.','I am {age} years old. I am from {town}.','I like {list}.','Nice to meet you. Thank you.'].map(function(x){return'<div class="cl-card">'+C.audio(T(x))+'</div>'}).join('')}},
+{stage:8,title:'I can',line:'Check what you can do now.',render:canStep},
+{stage:8,title:'Your badge',line:'Read the text.',next:'Finish',render:endStep}];
+
+document.addEventListener('DOMContentLoaded',function(){CLab.run({id:'exp01',label:'Experiment 1 of 15',welcome:'Welcome to Meet and Greet.',steps:STEPS})});
+</script>
+<style>
+.cl-root svg.cl-scene{width:100%;height:auto;border-radius:20px;display:block}
+.cl-root .cl-opts{display:flex;flex-direction:column;gap:8px}
+.cl-root .cl-opt{justify-content:flex-start;text-align:left;width:100%}
+.cl-root .cl-three{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.cl-root .cl-three svg{width:100%;height:auto}
+.cl-root .cl-mouth{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.cl-root .cl-mouth svg,.cl-root .cl-frames svg{width:100%;max-width:340px;height:auto}
+.cl-root .cl-mouth ol{margin:0;padding-left:24px}
+.cl-root .cl-frames{display:flex;flex-wrap:wrap;gap:12px}
+.cl-root .cl-frames figure{margin:0;flex:1 1 200px}
+.cl-root .cl-air{opacity:0}
+.cl-root .cl-anim .cl-tongue{animation:cl-tg var(--d,2s) ease-in-out infinite}
+.cl-root .cl-anim .cl-air{animation:cl-air var(--d,2s) ease-in-out infinite}
+.cl-root .cl-paused .cl-tongue,.cl-root .cl-paused .cl-air{animation-play-state:paused}
+.cl-root .cl-f2 .cl-tongue,.cl-root .cl-f3 .cl-tongue{transform:translate(26px,-11px)}
+.cl-root .cl-f3 .cl-air{opacity:1}
+@keyframes cl-tg{0%,12%{transform:translate(0,0)}35%,80%{transform:translate(26px,-11px)}100%{transform:translate(0,0)}}
+@keyframes cl-air{0%,45%{opacity:0}55%,75%{opacity:1}85%,100%{opacity:0}}
+</style>
+</head>
+<body style="margin:0"><div id="cl-exp01-root"></div></body>
+</html>
